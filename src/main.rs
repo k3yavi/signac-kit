@@ -1,37 +1,38 @@
-extern crate csv;
 extern crate clap;
+extern crate csv;
 extern crate flate2;
 extern crate pretty_env_logger;
 
 #[macro_use]
 extern crate log;
 
-use std::io;
+use std::collections::HashMap;
+use std::error::Error;
 use std::fs::File;
+use std::io;
+use std::io::BufReader;
 use std::io::Write;
 use std::path::Path;
-use std::error::Error;
-use std::io::BufReader;
-use std::collections::HashMap;
 
-use flate2::read::MultiGzDecoder;
 use clap::{App, Arg, ArgMatches, SubCommand};
+use flate2::read::MultiGzDecoder;
 
 fn group_command(sub_m: &ArgMatches) -> Result<(), Box<dyn Error>> {
-    let ifile_path = Path::new(sub_m.value_of("input")
-                       .expect("can't find the input file"))
+    let ifile_path = Path::new(sub_m.value_of("input").expect("can't find the input file"))
         .canonicalize()
         .expect("can't find absolute path of input file");
 
-    let ofile_path = sub_m.value_of("output")
-        .unwrap();
+    let ofile_path = sub_m.value_of("output").unwrap();
 
     let mut column_index = match sub_m.value_of("column") {
         Some(x) => x.parse::<usize>().expect("can't parse the column index"),
         None => panic!("Can't find what column index to use."),
     };
 
-    info!("Using input file {:?} and extracting {:?} column", ifile_path, column_index);
+    info!(
+        "Using input file {:?} and extracting {:?} column",
+        ifile_path, column_index
+    );
     column_index -= 1;
 
     let mut group_hash = HashMap::<String, usize>::new();
@@ -58,7 +59,7 @@ fn group_command(sub_m: &ArgMatches) -> Result<(), Box<dyn Error>> {
     info!("Done Parsing the input file, writing output");
 
     let mut ofile = File::create(&ofile_path).expect("can't create output file");
-    for (k,v) in group_hash.into_iter() {
+    for (k, v) in group_hash.into_iter() {
         writeln!(&mut ofile, "{}\t{}", k, v)?;
     }
 
@@ -97,18 +98,18 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .takes_value(true)
                         .required(true)
                         .help("Path to the output file"),
-                )
+                ),
         )
         .get_matches();
 
     pretty_env_logger::init_timed();
 
     match matches.subcommand_matches("group") {
-        Some(sub_m) =>  {
+        Some(sub_m) => {
             let ret = group_command(&sub_m);
             return ret;
         }
-        None => ()
+        None => (),
     };
 
     Ok(())
