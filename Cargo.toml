@@ -1,0 +1,16 @@
+[package]
+name = "signac-kit"
+version = "0.1.0"
+authors = ["Avi Srivastava <asrivastava@cs.stonybrook.edu>", "Tim Stuart <tstuart@nygenome.org>"]
+edition = "2018"
+
+description = """
+signac-kit provides fast wrapper functions to the Signac R package for processing
+ATAC-seq data.
+"""
+
+[[bin]]
+path = "src/main.rs"
+name = "sgk"
+
+[dependencies]
