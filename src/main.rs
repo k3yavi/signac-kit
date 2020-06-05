@@ -13,15 +13,9 @@ use std::path::Path;
 use std::error::Error;
 use std::io::BufReader;
 use std::collections::HashMap;
-use hashers::fnv::FNV1aHasher64;
-use std::hash::BuildHasherDefault;
 
 use flate2::read::MultiGzDecoder;
 use clap::{App, Arg, ArgMatches, SubCommand};
-
-fn get_map() -> HashMap<String, usize, BuildHasherDefault<FNV1aHasher64>> {
-    HashMap::default()
-}
 
 fn group_command(sub_m: &ArgMatches) -> Result<(), Box<dyn Error>> {
     let ifile_path = Path::new(sub_m.value_of("input")
@@ -40,7 +34,7 @@ fn group_command(sub_m: &ArgMatches) -> Result<(), Box<dyn Error>> {
     info!("Using input file {:?} and extracting {:?} column", ifile_path, column_index);
     column_index -= 1;
 
-    let mut group_hash = get_map();
+    let mut group_hash = HashMap::<String, usize>::new();
     let file = File::open(&ifile_path).expect("can't read file");
     let file_reader = MultiGzDecoder::new(file);
     let file_handle = BufReader::new(file_reader);
