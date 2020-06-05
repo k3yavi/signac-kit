@@ -6,7 +6,9 @@ extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
 
+use std::io;
 use std::fs::File;
+use std::io::Write;
 use std::path::Path;
 use std::error::Error;
 use std::io::BufReader;
@@ -27,7 +29,7 @@ fn group_command(sub_m: &ArgMatches) -> Result<(), Box<dyn Error>> {
         .canonicalize()
         .expect("can't find absolute path of input file");
 
-    let output_file_path = sub_m.value_of("output")
+    let ofile_path = sub_m.value_of("output")
         .unwrap();
 
     let mut column_index = match sub_m.value_of("column") {
@@ -48,10 +50,22 @@ fn group_command(sub_m: &ArgMatches) -> Result<(), Box<dyn Error>> {
         .has_headers(false)
         .from_reader(file_handle);
 
-    for result in rdr.records() {
+    for (index, result) in rdr.records().enumerate() {
         let record = result?;
         let cid = record.get(column_index).expect("can't extract the column");
         *group_hash.entry(cid.to_string()).or_insert(0) += 1;
+
+        if index % 1_000_000 == 0 {
+            print!("\r Done processing {:?} Million lines", index / 1_000_000);
+            io::stdout().flush().unwrap();
+        }
+    }
+    println!();
+    info!("Done Parsing the input file, writing output");
+
+    let mut ofile = File::create(&ofile_path).expect("can't create output file");
+    for (k,v) in group_hash.into_iter() {
+        writeln!(&mut ofile, "{}\t{}", k, v)?;
     }
 
     info!("All Done!");
