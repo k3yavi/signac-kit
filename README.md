@@ -1,4 +1,4 @@
-# signac-tools
+# signac-kit
 Fast wrapper around signac atac-seq processing workflow.
 
 ## Requirements
