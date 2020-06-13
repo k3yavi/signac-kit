@@ -4,7 +4,7 @@ use flate2::write::GzEncoder;
 use flate2::Compression;
 use std::error::Error;
 
-use bio::io::fastq;
+use bio::io::{fastq, fasta};
 use std::fs::File;
 use std::io::Write;
 use std::io;
@@ -50,9 +50,9 @@ pub fn extract_command(sub_m: &ArgMatches) -> Result<(), Box<dyn Error>> {
         .into_iter();
 
     let ofile_path = one_file_path.parent();
-    let ofile_1 = File::create(Path::new(ofile_path.unwrap()).join("R1.fq.gz"))
+    let ofile_1 = File::create(Path::new(ofile_path.unwrap()).join("R1.fa.gz"))
         .expect("can't write 1 file");
-    let ofile_2 = File::create(Path::new(ofile_path.unwrap()).join("R2.fq.gz"))
+    let ofile_2 = File::create(Path::new(ofile_path.unwrap()).join("R2.fa.gz"))
         .expect("can't write 2 file");
 
     let file_writer_o = GzEncoder::new(ofile_1, Compression::default());
@@ -61,8 +61,8 @@ pub fn extract_command(sub_m: &ArgMatches) -> Result<(), Box<dyn Error>> {
     let file_handle_wo = BufWriter::new(file_writer_o);
     let file_handle_wt = BufWriter::new(file_writer_t);
 
-    let mut writer_o = fastq::Writer::new(file_handle_wo);
-    let mut writer_t = fastq::Writer::new(file_handle_wt);
+    let mut writer_o = fasta::Writer::new(file_handle_wo);
+    let mut writer_t = fasta::Writer::new(file_handle_wt);
 
 
     let mut index = 0;
@@ -86,10 +86,10 @@ pub fn extract_command(sub_m: &ArgMatches) -> Result<(), Box<dyn Error>> {
             .expect("can't unwrap cb sequecne");
         let id = format!("{}_{}", rec_1.id(), seq);
 
-        writer_o.write(&id, None, rec_1.seq(), rec_1.qual())
+        writer_o.write(&id, None, rec_1.seq())
             .expect("can't write into R1 file");
 
-        writer_t.write(&id, None, rec_2.seq(), rec_2.qual())
+        writer_t.write(&id, None, rec_2.seq())
             .expect("can't write into R2 file");
 
         index += 1;
